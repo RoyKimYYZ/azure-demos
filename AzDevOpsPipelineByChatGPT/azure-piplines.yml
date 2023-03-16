@@ -1,0 +1,68 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+
+# Define variables
+variables:
+  - name: environment
+    value: dev
+  - name: location
+    value: canadacentral
+  - name: resource_group_name
+    value: terraform-chatgptdemo
+  - name: storage_account_name
+    value: tfchatgptdemo
+  - name: functionapp_storage_account_name
+    value: rkfunctionappstor02
+  - name: azurerm_windows_function_app_name
+    value: rkfunctionapp02
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- task: TerraformInstaller@0
+  displayName: 'Install Terraform'
+  inputs:
+    terraformVersion: 'latest'
+
+- task: TerraformTaskV2@2
+  displayName: 'Initialize Terraform'
+  inputs:
+    command: 'init'
+    provider: 'azurerm'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+    backendServiceArm: 'azdevopwithchatgpt_service_connection'
+    backendAzureRmResourceGroupName: 'terraform-chatgptdemo'
+    backendAzureRmStorageAccountName: 'tfchatgptdemo'
+    backendAzureRmContainerName: 'terraform-state'
+    backendAzureRmKey: 'terraform.tfstate'
+
+- task: TerraformTaskV1@0
+  displayName: 'Run Terraform Plan'
+  inputs:
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+    commandOptions: '-var "environment=$(environment)" -var "resource_group_name=$(resource_group_name)" -var "location=$(location)" -var "functionapp_storage_account_name=$(functionapp_storage_account_name)"  -var "azurerm_windows_function_app_name=$(azurerm_windows_function_app_name)" -input=false'
+    environmentServiceNameAzureRM: 'azdevopwithchatgpt_service_connection'
+
+- task: TerraformTaskV1@0
+  displayName: 'Run Terraform Apply'
+  inputs:
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+    commandOptions: '-var "environment=$(environment)" -var "resource_group_name=$(resource_group_name)" -var "location=$(location)" -var "functionapp_storage_account_name=$(functionapp_storage_account_name)"  -var "azurerm_windows_function_app_name=$(azurerm_windows_function_app_name)" -auto-approve'
+    environmentServiceNameAzureRM: 'azdevopwithchatgpt_service_connection'
+    
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
