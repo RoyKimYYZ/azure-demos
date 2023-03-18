@@ -1,0 +1,1 @@
+This folder contains code samples of a Azure DevOps Pipeline that comprises of terraform tasks to deploy the included terraform code of Azure Function App resource. This is the code sample demonstrated in my YouTube Video https://www.youtube.com/watch?v=nC8bICZxUnY
